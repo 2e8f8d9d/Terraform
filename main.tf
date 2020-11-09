@@ -23,6 +23,16 @@ provider "aws" {
   region     = var.region
 }
 
+terraform {
+  backend "remote" {
+    organization = "ckdevops"
+
+    workspaces {
+      name = "jenkins"
+    } 
+  } 
+}
+
 ##################################################################################
 # DATA
 ##################################################################################
