@@ -1,13 +1,3 @@
-terraform {
-  backend "remote" {
-    organization = "ckdevops"
-
-    workspaces {
-      name = "jenkins"
-    } 
-  } 
-}
-
 ##################################################################################
 # VARIABLES
 ##################################################################################
@@ -18,6 +8,7 @@ variable "private_key_path" {}
 variable "key_name" {}
 variable "database_password" {}
 variable "database_port" {}
+variable "api_key" {}
 variable "region" {
   default = "us-east-1"
 }
@@ -32,11 +23,26 @@ variable "subnet1_address_space" {
 # PROVIDERS
 ##################################################################################
 
+terraform {
+  backend "remote" {
+    organization = "ckdevops"
+
+    workspaces {
+      name = "jenkins"
+    } 
+  } 
+}
+
+credentials "app.terraform.io" {
+  token = var.api_key
+}
+
 provider "aws" {
   access_key = var.aws_access_key
   secret_key = var.aws_secret_key
   region     = var.region
 }
+
 
 ##################################################################################
 # DATA
