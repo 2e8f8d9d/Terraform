@@ -43,5 +43,5 @@ func TestTerraformAws(t *testing.T) {
 
 	// Make an HTTP request to the instance
 	url := fmt.Sprintf("http://%s:3000/users", publicIp)
-	http_helper.HttpGetWithRetry(t, http.MethodGet, url, nil, 200, "null", 10, 2*time.Second)
+	http_helper.HttpGetWithRetry(t, url, nil, 200, "null", 10, 2*time.Second)
 }
