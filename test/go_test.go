@@ -17,7 +17,7 @@ type User struct {
 	LastName string
 }
 
-func TestTerraformAwsHelloWorldExample(t *testing.T) {
+func TestTerraformAws(t *testing.T) {
 	var user User
 
 	user.FirstName = "Caige"
@@ -41,7 +41,7 @@ func TestTerraformAwsHelloWorldExample(t *testing.T) {
 	// Run `terraform output` to get the IP of the instance
 	publicIp := terraform.Output(t, terraformOptions, "public_ip")
 
-	// Make an HTTP request to the instance and make sure we get back a 200 OK with the body "Hello, World!"
+	// Make an HTTP request to the instance
 	url := fmt.Sprintf("http://%s:3000/users", publicIp)
 	http_helper.HttpGetWithRetry(t, http.MethodGet, url, nil, 200, "null", 10, 2*time.Second)
 }
