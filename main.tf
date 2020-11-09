@@ -143,7 +143,7 @@ resource "aws_instance" "goapp" {
     inline = [
       "sudo yum install docker -y",
       "sudo service docker start",
-      "sudo docker run -d -p 3000:3000 -e CONNECTIONSTRING='user:${var.database_password}@tcp(${module.db.this_db_instance_endpoint})/demodb' caigek1/goapp:0.0.0"
+      "sudo docker run -d -p 3000:3000 -e CONNECTIONSTRING='user:${var.database_password}@tcp(${module.db.this_db_instance_endpoint})/userdb' caigek1/goapp:0.0.0"
     ]
   }
 
@@ -156,14 +156,14 @@ module "db" {
   source  = "terraform-aws-modules/rds/aws"
   version = "~> 2.0"
 
-  identifier = "demodb"
+  identifier = "userdb"
 
   engine            = "mysql"
   engine_version    = "5.7.19"
   instance_class    = "db.t3.micro"
   allocated_storage = 5
 
-  name     = "demodb"
+  name     = "userdb"
   username = "user"
   password = var.database_password
   port     = "3306"
@@ -185,7 +185,7 @@ module "db" {
   major_engine_version = "5.7"
 
   # Snapshot name upon DB deletion
-  final_snapshot_identifier = "demodb"
+  final_snapshot_identifier = "userdb"
 
   # Database Deletion Protection
   deletion_protection = false
