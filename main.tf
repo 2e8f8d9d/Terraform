@@ -8,7 +8,6 @@ variable "private_key_path" {}
 variable "key_name" {}
 variable "database_password" {}
 variable "database_port" {}
-variable "api_key" {}
 variable "region" {
   default = "us-east-1"
 }
@@ -31,10 +30,6 @@ terraform {
       name = "jenkins"
     } 
   } 
-}
-
-credentials "app.terraform.io" {
-  token = var.api_key
 }
 
 provider "aws" {
