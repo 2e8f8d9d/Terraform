@@ -2,7 +2,6 @@ package test
 
 import (
 	"fmt"
-	"net/http"
 	"testing"
 	"time"
 
