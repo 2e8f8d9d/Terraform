@@ -11,33 +11,17 @@ variable "database_port" {}
 variable "region" {
   default = "us-east-1"
 }
-variable "network_address_space" {
-  default = "10.1.0.0/16"
-}
-variable "subnet1_address_space" {
-  default = "10.1.0.0/24"
-}
+
 
 ##################################################################################
 # PROVIDERS
 ##################################################################################
-
-terraform {
-  backend "remote" {
-    organization = "ckdevops"
-
-    workspaces {
-      name = "jenkins"
-    } 
-  } 
-}
 
 provider "aws" {
   access_key = var.aws_access_key
   secret_key = var.aws_secret_key
   region     = var.region
 }
-
 
 ##################################################################################
 # DATA
@@ -101,7 +85,7 @@ resource "aws_security_group" "allow_dbconnect" {
     from_port   = var.database_port
     to_port     = var.database_port
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["10.0.101.0/24"]
   }
 
   egress {
@@ -115,6 +99,62 @@ resource "aws_security_group" "allow_dbconnect" {
     Name = "allow_dbconnect"
   }
 }
+
+resource "aws_security_group" "web_server" {
+  name        = "web_server"
+  description = "web server"
+  vpc_id      = module.vpc.vpc_id
+
+  ingress {
+    description = "ssh"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description = "serve"
+    from_port   = 3000
+    to_port     = 3000
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_instance" "goapp" {
+  ami                    = data.aws_ami.aws-linux.id
+  instance_type          = "t2.micro"
+  subnet_id              = module.vpc.public_subnets[0]
+  vpc_security_group_ids = [aws_security_group.web_server.id]
+  key_name               = var.key_name
+
+  connection {
+    type        = "ssh"
+    host        = self.public_ip
+    user        = "ec2-user"
+    private_key = file(var.private_key_path)
+
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo yum install docker -y",
+      "sudo service docker start",
+      "sudo docker run -d -p 3000:3000 -e CONNECTIONSTRING='user:${var.database_password}@tcp(${module.db.this_db_instance_endpoint})/demodb' caigek1/goapp:0.0.0"
+    ]
+  }
+
+  depends_on = [module.db]
+}
+
 
 # Database #
 module "db" {
@@ -134,17 +174,11 @@ module "db" {
   port     = "3306"
 
   iam_database_authentication_enabled = false
-  publicly_accessible = true
 
   vpc_security_group_ids = [aws_security_group.allow_dbconnect.id]
 
   maintenance_window = "Mon:00:00-Mon:03:00"
   backup_window      = "03:00-06:00"
-
-  tags = {
-    Owner       = "user"
-    Environment = "dev"
-  }
 
   # DB subnet group
   subnet_ids = module.vpc.public_subnets
@@ -188,4 +222,8 @@ module "db" {
       ]
     },
   ]
+}
+
+output "aws_instance_public_dns" {
+  value = aws_instance.goapp.public_dns
 }
