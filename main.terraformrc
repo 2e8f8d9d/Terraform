@@ -1,5 +1,0 @@
-variable "api_key" {}
-
-credentials "app.terraform.io" {
-  token = var.api_key
-}
