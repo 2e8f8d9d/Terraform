@@ -4,3 +4,4 @@ terraform.tfstate.backup
 terraform.tfvars
 *.pem
 script.sh
+.terraform*
